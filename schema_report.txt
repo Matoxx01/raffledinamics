@@ -1,0 +1,104 @@
+Tabla: app_user
+---------------
+  - id [PK]
+      Tipo: int(11)
+      Nullable: NO
+      Default: None
+  - first_name
+      Tipo: varchar(100)
+      Nullable: NO
+      Default: None
+  - last_name
+      Tipo: varchar(100)
+      Nullable: NO
+      Default: None
+  - email
+      Tipo: varchar(100)
+      Nullable: NO
+      Default: None
+  - phone
+      Tipo: varchar(20)
+      Nullable: NO
+      Default: None
+
+
+Tabla: number
+-------------
+  - id [PK]
+      Tipo: int(11)
+      Nullable: NO
+      Default: None
+  - purchase_id [FK?]
+      Tipo: int(11)
+      Nullable: NO
+      Default: None
+  - number
+      Tipo: int(11)
+      Nullable: NO
+      Default: None
+  Foreign Keys:
+    * purchase_id → purchase(id)
+
+
+Tabla: prize
+------------
+  - id [PK]
+      Tipo: int(11)
+      Nullable: NO
+      Default: None
+  - name
+      Tipo: varchar(100)
+      Nullable: NO
+      Default: None
+
+
+Tabla: purchase
+---------------
+  - id [PK]
+      Tipo: int(11)
+      Nullable: NO
+      Default: None
+  - user_id [FK?]
+      Tipo: int(11)
+      Nullable: NO
+      Default: None
+  - quantity
+      Tipo: int(11)
+      Nullable: NO
+      Default: None
+  - paid
+      Tipo: tinyint(1)
+      Nullable: YES
+      Default: 0
+  - token
+      Tipo: varchar(255)
+      Nullable: YES
+      Default: NULL
+  Foreign Keys:
+    * user_id → app_user(id)
+
+
+Tabla: raffle
+-------------
+  - id [PK]
+      Tipo: int(11)
+      Nullable: NO
+      Default: None
+  - name
+      Tipo: varchar(100)
+      Nullable: NO
+      Default: None
+  - description
+      Tipo: text
+      Nullable: NO
+      Default: None
+  - cost
+      Tipo: int(11)
+      Nullable: NO
+      Default: 0
+  - datelottery
+      Tipo: datetime
+      Nullable: NO
+      Default: current_timestamp()
+
+

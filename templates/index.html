@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ raffle.name }}</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="icon" href="/static/favicon.ico" />
+</head>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>{{ raffle.name }}</h1>
+    <p>{{ raffle.description }}</p>
+    <button onclick="document.getElementById('form-section').scrollIntoView({behavior: 'smooth'})">Participar</button>
+  </div>
+</section>
+
+<body>
+
+  <!-- Premios -->
+  <section class="prizes">
+    <h2>Premios</h2>
+    <ul>
+      {% for prize in prizes %}
+        <li>{{ prize.name }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <!-- Formulario -->
+  <section id="form-section" class="form">
+    <h2>Participa en la rifa</h2>
+    <p style="color: grey">Costo: {{ cost }} CLP</p>
+    <p style="color: grey">Día de Sorteo: {{ datelottery }}</p>
+    <form id="raffleForm" method="POST" action="/create-checkout-session">
+      <input type="text" name="name" placeholder="Nombre" required />
+      <input type="text" name="lastname" placeholder="Apellido" required />
+      <input type="email" name="email" placeholder="Correo" required />
+      <input type="text" name="phone" placeholder="Teléfono" required />
+      <input type="number" name="quantity" placeholder="Cantidad de números" required min="1" />
+      <button type="submit">Pagar y Participar</button>
+    </form>
+  </section>
+
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
