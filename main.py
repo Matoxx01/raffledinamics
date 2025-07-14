@@ -166,25 +166,38 @@ def enviar_correo_compra_exitosa(destinatario: str, nombre: str, numeros: list):
 
     asunto = "🎉 ¡Gracias por participar en la rifa!"
     numeros_texto = ", ".join(str(n) for n in numeros)
-    mensaje = f"""
-Hola {nombre},
 
-¡Tu compra ha sido registrada exitosamente! 🎫
+    # HTML del mensaje
+    html = f"""
+    <html>
+      <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
+        <div style="max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0px 0px 10px #ccc;">
+          <h2 style="color: #4CAF50;">🎫 ¡Hola {nombre}!</h2>
+          <p>Tu compra ha sido <strong>registrada exitosamente</strong>.</p>
+          <p><strong>Tus números asignados:</strong></p>
+          <div style="font-size: 18px; color: #333; background: #e0f7fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
+            {numeros_texto}
+          </div>
+          <p>🍀 <strong>¡Te deseamos mucha suerte en el sorteo!</strong></p>
+          <br>
+          <p style="font-size: 14px; color: #888;">Este correo ha sido generado automáticamente. No respondas a este mensaje.</p>
+        </div>
+      </body>
+    </html>
+    """
 
-Tus números asignados son: {numeros_texto}
-
-Te deseamos mucha suerte 🍀 en el sorteo.
-"""
-
+    # Crear mensaje
     msg = EmailMessage()
     msg["From"] = gmail_user
     msg["To"] = destinatario
     msg["Subject"] = asunto
-    msg.set_content(mensaje)
+    msg.set_content("Tu compra ha sido registrada exitosamente. Revisa el correo en formato HTML para más detalles.")
+    msg.add_alternative(html, subtype="html")
 
     try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
             smtp.login(gmail_user, gmail_pass)
             smtp.send_message(msg)
+        print("✅ Correo enviado correctamente.")
     except Exception as e:
         print(f"❌ Error al enviar correo: {e}")
