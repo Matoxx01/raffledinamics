@@ -7,7 +7,6 @@ from fastapi.templating import Jinja2Templates
 from datetime import datetime
 from dotenv import load_dotenv
 import mysql.connector
-from stripe.error import StripeError
 from pydantic import BaseModel
 import smtplib
 from email.message import EmailMessage
@@ -71,13 +70,6 @@ def create_checkout_session(
     phone: str = Form(...),
     quantity: int = Form(...)
 ):
-    # Debugging: verificar claves y URLs
-    print("Stripe API key:", stripe.api_key)
-    if not stripe.api_key:
-        raise HTTPException(status_code=500, detail="Stripe secret key no configurada")
-    if not DOMAIN:
-        raise HTTPException(status_code=500, detail="DOMAIN no configurado")
-
     db = get_connection()
     cursor = db.cursor(dictionary=True)
 
@@ -85,46 +77,34 @@ def create_checkout_session(
     cursor.execute("SELECT cost FROM raffle LIMIT 1")
     raffle = cursor.fetchone()
     if not raffle:
-        cursor.close()
-        db.close()
         raise HTTPException(status_code=500, detail="No hay información de la rifa.")
 
     unit_price = raffle["cost"]
-    # Validar tipo de dato
-    if not isinstance(unit_price, int):
-        cursor.close()
-        db.close()
-        raise HTTPException(status_code=500, detail="El precio de la rifa debe ser un entero")
 
-    # Crear sesión de pago en Stripe
-    try:
-        session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            line_items=[{
-                "price_data": {
-                    "currency": "clp",
-                    "unit_amount": unit_price,
-                    "product_data": {"name": "Número de rifa"},
+    # Creamos la sesión de Stripe, pasando los datos del usuario como metadata
+    session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[{
+            "price_data": {
+                "currency": "clp",
+                "unit_amount": unit_price,
+                "product_data": {
+                    "name": "Número de rifa",
                 },
-                "quantity": quantity,
-            }],
-            mode="payment",
-            success_url=f"{DOMAIN}/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{DOMAIN}/",
-            customer_email=email,
-            metadata={
-                "name": name,
-                "lastname": lastname,
-                "phone": phone,
-                "quantity": str(quantity)
-            }
-        )
-    except StripeError as e:
-        # Registrar detalle de error
-        print(f"StripeError: {e.user_message or str(e)} (type={type(e)})")
-        cursor.close()
-        db.close()
-        raise HTTPException(status_code=502, detail="Error al comunicarse con Stripe")
+            },
+            "quantity": quantity,
+        }],
+        mode="payment",
+        success_url=f"{DOMAIN}/success?session_id={{CHECKOUT_SESSION_ID}}",
+        cancel_url=f"{DOMAIN}/",
+        customer_email=email,
+        metadata={
+            "name": name,
+            "lastname": lastname,
+            "phone": phone,
+            "quantity": str(quantity)
+        }
+    )
 
     cursor.close()
     db.close()
