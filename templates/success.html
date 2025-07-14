@@ -3,18 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <title>¡Pago exitoso!</title>
-  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="icon" href="/static/favicon.ico" />
+  <link rel="stylesheet" href="/static/styles.success.css">
 </head>
 <body>
-  <section class="form">
+  <div class="floating-elements">
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+  </div>
+  
+  <div class="success-container">
+    <div class="success-icon"></div>
+    
     <h1>¡Gracias por participar!</h1>
-    <p>Tu pago fue registrado correctamente. Tus números asignados son:</p>
-    <ul>
-      {% for n in numbers %}
-        <li style="list-style-type: none; margin-right: 40px;">Número: {{ n }}</li>
-      {% endfor %}
-    </ul>
-    <a href="/" style="margin-top: 2rem; display: inline-block; color: #1e3c72;">Volver al inicio</a>
-  </section>
+    <b class="advice">*TE ENVIAMOS TUS NÚMEROS POR CORREO*</b>
+    <p class="subtitle">Tu pago fue registrado correctamente. Tus números asignados son:</p>
+    
+    <div class="numbers-container">
+      <div class="numbers-title">Tus números de la suerte:</div>
+      <ul class="numbers-grid">
+        {% for n in numbers %}
+          <li class="number-item" style="--delay: {{ loop.index }}">{{ n }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    
+    <a href="/" class="back-button">Volver al inicio</a>
+  </div>
+  <script src="/static/script.success.js"></script>
 </body>
 </html>

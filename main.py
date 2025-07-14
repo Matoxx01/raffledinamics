@@ -118,21 +118,42 @@ def success(request: Request, session_id: str):
     if session.payment_status != "paid":
         return HTMLResponse("Pago no confirmado", status_code=400)
 
+    db = get_connection()
+    cursor = db.cursor(dictionary=True)
+
+    # ✅ Verificar si el session_id ya fue procesado
+    cursor.execute("SELECT id FROM purchase WHERE token = %s", (session_id,))
+    existing_purchase = cursor.fetchone()
+    if existing_purchase:
+        # ✅ Obtener los números asociados a esa compra
+        cursor.execute("SELECT number FROM number WHERE purchase_id = %s", (existing_purchase["id"],))
+        numbers = [row["number"] for row in cursor.fetchall()]
+        cursor.close()
+        db.close()
+        return templates.TemplateResponse("success.html", {
+            "request": request,
+            "numbers": numbers
+        })
+
+    # Extraer datos desde la metadata de Stripe
     name = session.metadata["name"]
     lastname = session.metadata["lastname"]
     phone = session.metadata["phone"]
     email = session.customer_email
     quantity = int(session.metadata["quantity"])
 
-    db = get_connection()
-    cursor = db.cursor(dictionary=True)
+    # ✅ Verificar si ya existe un usuario con el mismo correo
+    cursor.execute("SELECT id FROM app_user WHERE email = %s", (email,))
+    existing_user = cursor.fetchone()
 
-    # Guardar usuario
-    cursor.execute("""
-        INSERT INTO app_user (first_name, last_name, email, phone)
-        VALUES (%s, %s, %s, %s)
-    """, (name, lastname, email, phone))
-    user_id = cursor.lastrowid
+    if existing_user:
+        user_id = existing_user["id"]
+    else:
+        cursor.execute("""
+            INSERT INTO app_user (first_name, last_name, email, phone)
+            VALUES (%s, %s, %s, %s)
+        """, (name, lastname, email, phone))
+        user_id = cursor.lastrowid
 
     # Guardar compra como pagada
     cursor.execute("""
@@ -141,7 +162,7 @@ def success(request: Request, session_id: str):
     """, (user_id, quantity, session_id))
     purchase_id = cursor.lastrowid
 
-    # Generar números aleatorios
+    # Generar números aleatorios únicos
     from random import sample
     available_numbers = sample(range(1, 10000), quantity)
     for num in available_numbers:
@@ -149,7 +170,7 @@ def success(request: Request, session_id: str):
 
     db.commit()
 
-    # Enviar correo de confirmación
+    # Enviar correo
     enviar_correo_compra_exitosa(destinatario=email, nombre=name, numeros=available_numbers)
 
     cursor.close()
